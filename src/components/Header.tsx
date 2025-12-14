@@ -108,8 +108,9 @@ export const Header = () => {
                     />
                   </Row>
                 </>
-              )}
-              {routes["/work"] && (
+              )}  
+              {/* TODO : NTAR TAMBAHIN KALO MOOD, JANGAN LUPA UBAH-UBAH DI CONTENT TSX JUGA */}
+              {/* {routes["/work"] && (
                 <>
                   <Row s={{ hide: true }}>
                     <ToggleButton
@@ -127,7 +128,7 @@ export const Header = () => {
                     />
                   </Row>
                 </>
-              )}
+              )} */}
               {/* {routes["/blog"] && (
                 <>
                   <Row s={{ hide: true }}>
