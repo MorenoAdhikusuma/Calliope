@@ -1,4 +1,4 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
+import { About, Blog, Gallery, Home,Person, Social, Work } from "@/types";
 import { Line, Row, Text } from "@once-ui-system/core";
 
 const person: Person = {
@@ -12,11 +12,6 @@ const person: Person = {
   languages: ["English", "Bahasa","arabic"], // optional: Leave the array empty if you don't want to display languages
 };
 
-const newsletter: Newsletter = {
-  display: true,
-  title: <>Subscribe to {person.firstName}'s Newsletter</>,
-  description: <>My weekly newsletter about creativity and engineering</>,
-};
 
 const social: Social = [
   // Links are automatically displayed.
@@ -54,7 +49,7 @@ const home: Home = {
   label: "Home",
   title: `${person.name}'s Portfolio`,
   description: `Portfolio website showcasing my work as a ${person.role}`,
-  headline: <>Fine Arts</>,
+  headline: <>ربا</>,
   featured: {
     display: true,
     title: (
@@ -70,7 +65,7 @@ const home: Home = {
   },
   subline: (
     <>
-    I'm Rubab, a Fine arts Studentn at <Text as="span" size="xl" weight="strong">University of tenth november</Text>, where I craft intuitive <br /> user experiences. After hours, I build my own projects.
+    Discover the artistic journey of Rubab Alcaff, as she explores visual expression through form, color, and composition.
 </>
   ),
 };
@@ -96,9 +91,10 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        I'm Rubab Alcaff, a Fine arts Student at University of tenth november. I specialize in
-        creating intuitive user experiences that blend creativity with functionality. With a
-        passion for design and a keen eye for detail
+        I’m Rubab Alcaff, a Fine Arts student at FSRD UNS.
+         My practice centers on exploring visual expression through form, color, and composition. 
+         With a strong attention to detail, I aim to create works that communicate emotion, concept, 
+         and meaning through thoughtful artistic processes.
       </>
     ),
   },
@@ -123,8 +119,8 @@ const about: About = {
         images: [
           // optional: leave the array empty if you don't want to display images
           {
-            src: "/images/projects/project-01/cover-01.jpg",
-            alt: "Once UI Project",
+            src: "@",
+            alt: "@",
             width: 16,
             height: 9,
           },
@@ -153,7 +149,7 @@ const about: About = {
     title: "Studies",
     institutions: [
       {
-        name: "University of Tenth November",
+        name: "Universitas Sebelas Maret",
         description: <>Studied Fine Arts.</>,
       },
     ],
@@ -291,4 +287,4 @@ const gallery: Gallery = {
   ],
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+export { person, social,  home, about, blog, work, gallery };
