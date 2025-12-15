@@ -7,9 +7,9 @@ const person: Person = {
   name: `Rubab Alcaff`,
   role: "Fine Art Artist ",
   avatar: "/images/profile_icon'.png",
-  email: "example@gmail.com",
+  email: "tardigantipakeemailrubabkalomau@gmail.com", // IDK RUBAB EMAIL TAR DIGANTI
   location: "Asia/Jakarta", // Expecting the IANA time zone identifier, e.g., 'Europe/Vienna'
-  languages: ["English", "Bahasa","arabic"], // optional: Leave the array empty if you don't want to display languages
+  languages: ["English", "Bahasa","Arabic"], // optional: Leave the array empty if you don't want to display languages
 };
 
 
@@ -26,13 +26,13 @@ const social: Social = [
   {
     name: "Instagram",
     icon: "instagram",
-    link: "https://www.instagram.com/once_ui/",
+    link: "https://www.instagram.com/rubaalcaff/",
     essential: false,
   },
   {
     name: "Threads",
     icon: "threads",
-    link: "https://www.threads.com/@once_ui",
+    link: "https://www.threads.net/@rubaalcaff",
     essential: true,
   },
   {
@@ -61,7 +61,7 @@ const home: Home = {
         </Text>
       </Row>
     ),
-    href: "/work/building-once-ui-a-customizable-design-system",
+    href: "#", // TODO : DIGANTI PAKE LINK KARYA NYA 
   },
   subline: (
     <>
@@ -84,7 +84,7 @@ const about: About = {
   },
   calendar: {
     display: true,
-    link: "https://cal.com",
+    link: "#", // INI JUGA TAR DIGANTI 
   },
   intro: {
     display: true,
