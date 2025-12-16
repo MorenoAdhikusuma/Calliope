@@ -16,6 +16,15 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let clickableArtworks: THREE.Mesh[] = [];
 
+/* ---- ZOOM STATE ---- */
+let isZoomed = false;
+let zoomTarget: THREE.Vector3 | null = null;
+let zoomLookAt: THREE.Vector3 | null = null;
+
+/* ---- CAMERA TUNING (FIXED) ---- */
+const defaultCamPos = new THREE.Vector3(0, 1.55, 3.2);
+const defaultLookAt = new THREE.Vector3(0, 2.3, -10);
+
 /* ================= TYPES ================= */
 
 type ArtworkData = {
@@ -28,7 +37,6 @@ type ArtworkData = {
 /* ================= INIT ================= */
 
 export function initMuseum(container: HTMLDivElement) {
-  // Prevent double init (Next.js Strict Mode)
   if (container.querySelector("canvas")) return;
 
   /* ---------- SCENE ---------- */
@@ -42,8 +50,8 @@ export function initMuseum(container: HTMLDivElement) {
     0.1,
     100
   );
-  camera.position.set(0, 1.9, 2.2);
-  camera.lookAt(0, 4.5, -10);
+  camera.position.copy(defaultCamPos);
+  camera.lookAt(defaultLookAt);
 
   /* ---------- RENDERER ---------- */
   renderer = new THREE.WebGLRenderer({
@@ -55,21 +63,19 @@ export function initMuseum(container: HTMLDivElement) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   container.appendChild(renderer.domElement);
 
-  camera.aspect = container.clientWidth / container.clientHeight;
-  camera.updateProjectionMatrix();
-
   /* ---------- CONTROLS ---------- */
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
   controls.enableZoom = false;
 
-  controls.minPolarAngle = Math.PI / 2.6;
+  controls.minPolarAngle = Math.PI / 2.5;
   controls.maxPolarAngle = Math.PI / 2.15;
   controls.minAzimuthAngle = -Math.PI / 3;
   controls.maxAzimuthAngle = Math.PI / 3;
 
   controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
+  controls.dampingFactor = 0.06;
+  controls.target.copy(defaultLookAt);
 
   /* ---------- LIGHTING ---------- */
   scene.add(new THREE.AmbientLight(0xffffff, 0.75));
@@ -90,6 +96,17 @@ export function initMuseum(container: HTMLDivElement) {
   /* ---------- LOOP ---------- */
   const animate = () => {
     rafId = requestAnimationFrame(animate);
+
+    if (zoomTarget && zoomLookAt) {
+      camera.position.lerp(zoomTarget, 0.06);
+      controls.target.lerp(zoomLookAt, 0.06);
+
+      if (camera.position.distanceTo(zoomTarget) < 0.04) {
+        zoomTarget = null;
+        zoomLookAt = null;
+      }
+    }
+
     controls.update();
     renderer.render(scene, camera);
   };
@@ -107,11 +124,9 @@ export function initMuseum(container: HTMLDivElement) {
 /* ================= CLEANUP ================= */
 
 export function disposeMuseum(container?: HTMLDivElement) {
-  // Remove artwork info panel
   const panel = document.getElementById("artwork-panel");
   if (panel) panel.remove();
 
-  // Remove listeners
   if (container && boundPointerDown) {
     container.removeEventListener("pointerdown", boundPointerDown);
   }
@@ -119,7 +134,6 @@ export function disposeMuseum(container?: HTMLDivElement) {
     window.removeEventListener("resize", boundResize);
   }
 
-  // Stop animation
   if (rafId !== null) {
     cancelAnimationFrame(rafId);
     rafId = null;
@@ -127,12 +141,9 @@ export function disposeMuseum(container?: HTMLDivElement) {
 
   clickableArtworks = [];
 
-  // Dispose renderer
   if (renderer) {
     renderer.dispose();
-    if (renderer.domElement?.parentElement) {
-      renderer.domElement.parentElement.removeChild(renderer.domElement);
-    }
+    renderer.domElement?.parentElement?.removeChild(renderer.domElement);
   }
 
   if (scene) scene.clear();
@@ -151,7 +162,6 @@ function createRoom() {
   const floorY = -2;
   const wallCenterY = floorY + roomHeight / 2;
 
-  // Back wall
   const backWall = new THREE.Mesh(
     new THREE.PlaneGeometry(roomWidth, roomHeight),
     wallMaterial
@@ -159,7 +169,6 @@ function createRoom() {
   backWall.position.set(0, wallCenterY, -roomDepth / 2);
   scene.add(backWall);
 
-  // Left wall
   const leftWall = new THREE.Mesh(
     new THREE.PlaneGeometry(roomDepth, roomHeight),
     wallMaterial
@@ -168,7 +177,6 @@ function createRoom() {
   leftWall.position.set(-roomWidth / 2, wallCenterY, -roomDepth / 2);
   scene.add(leftWall);
 
-  // Right wall
   const rightWall = new THREE.Mesh(
     new THREE.PlaneGeometry(roomDepth, roomHeight),
     wallMaterial
@@ -177,7 +185,6 @@ function createRoom() {
   rightWall.position.set(roomWidth / 2, wallCenterY, -roomDepth / 2);
   scene.add(rightWall);
 
-  // Floor
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(roomWidth, roomDepth),
     floorMaterial
@@ -186,7 +193,6 @@ function createRoom() {
   floor.position.set(0, floorY, -roomDepth / 2);
   scene.add(floor);
 
-  // Ceiling
   const ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(roomWidth, roomDepth),
     ceilingMaterial
@@ -205,7 +211,7 @@ function addArtworks() {
     {
       src: "/artworks/art1.jpg",
       info: {
-        title: "Untitled Creature",
+        title: "TAR DIGANTI KALO ADA",
         year: "2024",
         medium: "Digital Painting",
         description: "A surreal creature exploring texture and contrast.",
@@ -214,7 +220,7 @@ function addArtworks() {
     {
       src: "/artworks/art2.jpg",
       info: {
-        title: "Study in Black",
+        title: "SESUAI SAMA ARTWORK YANG ADA",
         year: "2023",
         medium: "Mixed Media",
         description: "An exploration of absence and form.",
@@ -228,6 +234,17 @@ function addArtworks() {
         medium: "Digital Illustration",
         description: "Minimalist composition focusing on balance.",
       },
+      
+    },
+     {
+      src: "/artworks/art3.jpg",
+      info: {
+        title: "Negative Space",
+        year: "2023",
+        medium: "Digital Illustration",
+        description: "Minimalist composition focusing on balance.",
+      },
+      
     },
   ];
 
@@ -245,7 +262,7 @@ function addArtworks() {
       new THREE.MeshBasicMaterial({ map: texture })
     );
 
-    art.position.set(startX + index * spacing, 2.4, -9.85);
+    art.position.set(startX + index * spacing, 2.3, -9.85);
     art.userData = item.info;
 
     scene.add(art);
@@ -262,13 +279,39 @@ function onPointerDown(event: PointerEvent) {
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
   raycaster.setFromCamera(pointer, camera);
-
   const intersects = raycaster.intersectObjects(clickableArtworks);
+
   if (intersects.length > 0) {
-    showArtworkInfo(intersects[0].object.userData as ArtworkData);
+    const art = intersects[0].object as THREE.Mesh;
+    showArtworkInfo(art.userData as ArtworkData);
+    zoomToArtwork(art);
   } else {
     hideArtworkInfo();
+    resetZoom();
   }
+}
+
+/* ================= ZOOM HELPERS ================= */
+
+function zoomToArtwork(art: THREE.Mesh) {
+  isZoomed = true;
+  controls.enabled = false;
+
+  const worldPos = new THREE.Vector3();
+  art.getWorldPosition(worldPos);
+
+  zoomLookAt = worldPos.clone().add(new THREE.Vector3(0, 0.05, 0));
+  zoomTarget = worldPos.clone().add(new THREE.Vector3(0, 0.1, 2.4));
+}
+
+function resetZoom() {
+  if (!isZoomed) return;
+
+  isZoomed = false;
+  controls.enabled = true;
+
+  zoomTarget = defaultCamPos.clone();
+  zoomLookAt = defaultLookAt.clone();
 }
 
 /* ================= INFO PANEL ================= */
