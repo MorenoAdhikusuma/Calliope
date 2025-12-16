@@ -236,6 +236,13 @@ const work: Work = {
   // All projects will be listed on the /home and /work routes
 };
 
+export const museum = {
+  label: "Museum",
+  title: "Museum",
+  description: "Interactive 3D art exhibition",
+};
+
+
 const gallery: Gallery = {
   path: "/gallery",
   label: "Gallery",
