@@ -8,15 +8,30 @@ let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
 let controls: OrbitControls;
-let environmentGroup: THREE.Group | null = null;
 
+let environmentGroup: THREE.Group | null = null;
 let rafId: number | null = null;
 let boundResize: (() => void) | null = null;
 
 /* ================= CAMERA PRESETS ================= */
 
 const defaultCamPos = new THREE.Vector3(0, 15, 3.2);
-const defaultLookAt = new THREE.Vector3(0, 1.8, 0);
+const defaultLookAt = new THREE.Vector3(0, 1.6, 0);
+
+/* ================= LAZY LOADING ================= */
+
+const textureLoader = new THREE.TextureLoader();
+
+type LazyArtwork = {
+  mesh: THREE.Mesh;
+  material: THREE.MeshStandardMaterial;
+  src: string;
+  loaded: boolean;
+};
+
+const lazyArtworks: LazyArtwork[] = [];
+const frustum = new THREE.Frustum();
+const projScreenMatrix = new THREE.Matrix4();
 
 /* ================= INIT ================= */
 
@@ -39,7 +54,7 @@ export function initMuseum(container: HTMLDivElement) {
 
   /* ---------- RENDERER ---------- */
   renderer = new THREE.WebGLRenderer({
-    antialias: false,
+    antialias: true,
     powerPreference: "low-power",
   });
 
@@ -68,14 +83,32 @@ export function initMuseum(container: HTMLDivElement) {
   addDirectionalLights();
 
   /* ---------- ENVIRONMENT ---------- */
-  loadEnvironment("/models/room.glb");
+  loadEnvironment("/models/MUSEUM1.glb");
 
   /* ---------- LOOP ---------- */
   const animate = () => {
     rafId = requestAnimationFrame(animate);
+
     controls.update();
+
+    // update frustum
+    camera.updateMatrixWorld();
+    projScreenMatrix.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(projScreenMatrix);
+
+    // lazy-load visible artworks
+    for (const entry of lazyArtworks) {
+      if (!entry.loaded && frustum.intersectsObject(entry.mesh)) {
+        loadArtworkTexture(entry);
+      }
+    }
+
     renderer.render(scene, camera);
   };
+
   animate();
 
   /* ---------- RESIZE ---------- */
@@ -84,6 +117,7 @@ export function initMuseum(container: HTMLDivElement) {
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
   };
+
   window.addEventListener("resize", boundResize);
 }
 
@@ -91,11 +125,11 @@ export function initMuseum(container: HTMLDivElement) {
 
 function loadEnvironment(glbPath: string) {
   const loader = new GLTFLoader();
-  const textureLoader = new THREE.TextureLoader();
 
   if (environmentGroup) {
     scene.remove(environmentGroup);
     environmentGroup.clear();
+    lazyArtworks.length = 0;
   }
 
   environmentGroup = new THREE.Group();
@@ -106,25 +140,24 @@ function loadEnvironment(glbPath: string) {
       if (!(obj as THREE.Mesh).isMesh) return;
 
       const mesh = obj as THREE.Mesh;
-      const material = mesh.material as THREE.Material;
+      const mat = mesh.material as THREE.MeshStandardMaterial;
 
       mesh.castShadow = false;
       mesh.receiveShadow = true;
 
-      if (!("name" in material)) return;
+      if (!mat?.name) return;
 
-      switch (material.name) {
-        case "art01":
-          applyArtwork(material, textureLoader, "/artworks/art1.jpg");
-          break;
+      // MATCH MATERIAL NAMES FROM BLENDER
+      if (mat.name === "art01") {
+        registerLazyArtwork(mesh, mat, "/artworks/art1.jpg");
+      }
 
-        case "art02":
-          applyArtwork(material, textureLoader, "/artworks/art2.jpg");
-          break;
+      if (mat.name === "art02") {
+        registerLazyArtwork(mesh, mat, "/artworks/art2.jpg");
+      }
 
-        case "art03":
-          applyArtwork(material, textureLoader, "/artworks/art3.jpg");
-          break;
+      if (mat.name === "art03") {
+        registerLazyArtwork(mesh, mat, "/artworks/art3.jpg");
       }
     });
 
@@ -132,20 +165,37 @@ function loadEnvironment(glbPath: string) {
   });
 }
 
-/* ================= MATERIAL HELPERS ================= */
+/* ================= LAZY ARTWORK ================= */
 
-function applyArtwork(
-  material: THREE.Material,
-  loader: THREE.TextureLoader,
+function registerLazyArtwork(
+  mesh: THREE.Mesh,
+  material: THREE.MeshStandardMaterial,
   src: string
 ) {
-  const mat = material as THREE.MeshStandardMaterial;
+  // placeholder
+  material.map = null;
+  material.color.set(0x222222);
+  material.needsUpdate = true;
 
-  const tex = loader.load(src);
-  tex.colorSpace = THREE.SRGBColorSpace;
+  lazyArtworks.push({
+    mesh,
+    material,
+    src,
+    loaded: false,
+  });
+}
 
-  mat.map = tex;
-  mat.needsUpdate = true;
+function loadArtworkTexture(entry: LazyArtwork) {
+  textureLoader.load(entry.src, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+
+    entry.material.map = tex;
+    entry.material.color.set(0xffffff);
+    entry.material.needsUpdate = true;
+    entry.loaded = true;
+  });
 }
 
 /* ================= LIGHTS ================= */
@@ -163,11 +213,20 @@ function addDirectionalLights() {
 /* ================= CLEANUP ================= */
 
 export function disposeMuseum() {
-  if (boundResize) window.removeEventListener("resize", boundResize);
-  if (rafId) cancelAnimationFrame(rafId);
+  if (boundResize) {
+    window.removeEventListener("resize", boundResize);
+    boundResize = null;
+  }
 
-  renderer?.dispose();
-  renderer?.domElement?.remove();
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  if (renderer) {
+    renderer.dispose();
+    renderer.domElement?.remove();
+  }
 
   scene?.clear();
 }
