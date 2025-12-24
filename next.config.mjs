@@ -9,15 +9,17 @@ const withMDX = mdx({
 const nextConfig = {
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   transpilePackages: ["next-mdx-remote"],
+
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "www.google.com",
-        pathname: "**",
+        hostname: "cdn.sanity.io",
+        pathname: "/images/**",
       },
     ],
   },
+
   sassOptions: {
     compiler: "modern",
     silenceDeprecations: ["legacy-js-api"],

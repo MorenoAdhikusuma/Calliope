@@ -11,8 +11,15 @@ import {
 } from "@/types";
 import { home } from "./index";
 
-// IMPORTANT: Replace with your own domain address - it's used for SEO in meta tags and schema
+/* ======================================
+   BASE URL
+====================================== */
+
 const baseURL: string = "https://demo.magic-portfolio.com";
+
+/* ======================================
+   ROUTES (CRITICAL FIX FOR SANITY)
+====================================== */
 
 const routes: RoutesConfig = {
   "/": true,
@@ -21,23 +28,26 @@ const routes: RoutesConfig = {
   "/blog": true,
   "/gallery": true,
   "/museum": true,
+
+  // 🔐 Sanity Studio (EXPLICIT — NO WILDCARDS)
+  "/studio": true,
+  "/studio*": true,
 };
+
+/* ======================================
+   DISPLAY
+====================================== */
 
 const display: DisplayConfig = {
   location: true,
   time: true,
   themeSwitcher: true,
 };
+/* ======================================
+   FONTS
+====================================== */
 
-// Enable password protection on selected routes
-// Set password in the .env file, refer to .env.example
-const protectedRoutes: ProtectedRoutesConfig = {
-  "/work/automate-design-handovers-with-a-figma-to-code-pipeline": true,
-};
-
-// Import and set font for each variant
-import { Geist } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 
 const heading = Geist({
   variable: "--font-heading",
@@ -64,31 +74,37 @@ const code = Geist_Mono({
 });
 
 const fonts: FontsConfig = {
-  heading: heading,
-  body: body,
-  label: label,
-  code: code,
+  heading,
+  body,
+  label,
+  code,
 };
 
-// default customization applied to the HTML in the main layout.tsx
+/* ======================================
+   STYLE
+====================================== */
+
 const style: StyleConfig = {
-  theme: "system", // dark | light | system
-  neutral: "gray", // sand | gray | slate | custom
-  //BUAT WARNA CUSTOM NYA 
-  brand: "pink", // blue | indigo | violet | magenta | pink | red | orange | yellow | moss | green | emerald | aqua | cyan | custom
-  accent: "yellow", // blue | indigo | violet | magenta | pink | red | orange | yellow | moss | green | emerald | aqua | cyan | custom
-  solid: "contrast", // color | contrast
-  solidStyle: "flat", // flat | plastic
-  border: "playful", // rounded | playful | conservative
-  surface: "filled", // filled | translucent
-  transition: "all", // all | micro | macro
-  scaling: "100", // 90 | 95 | 100 | 105 | 110
+  theme: "system",
+  neutral: "gray",
+  brand: "pink",
+  accent: "yellow",
+  solid: "contrast",
+  solidStyle: "flat",
+  border: "playful",
+  surface: "filled",
+  transition: "all",
+  scaling: "100",
 };
+
+/* ======================================
+   DATA STYLE
+====================================== */
 
 const dataStyle: DataStyleConfig = {
-  variant: "gradient", // flat | gradient | outline
-  mode: "categorical", // categorical | divergent | sequential
-  height: 24, // default chart height
+  variant: "gradient",
+  mode: "categorical",
+  height: 24,
   axis: {
     stroke: "var(--neutral-alpha-weak)",
   },
@@ -98,6 +114,10 @@ const dataStyle: DataStyleConfig = {
     line: false,
   },
 };
+
+/* ======================================
+   EFFECTS
+====================================== */
 
 const effects: EffectsConfig = {
   mask: {
@@ -140,9 +160,10 @@ const effects: EffectsConfig = {
   },
 };
 
+/* ======================================
+   SCHEMA
+====================================== */
 
-
-// default schema data
 const schema: SchemaConfig = {
   logo: "",
   type: "Organization",
@@ -151,10 +172,10 @@ const schema: SchemaConfig = {
   email: "lorant@once-ui.com",
 };
 
+/* ======================================
+   SOCIAL SHARING
+====================================== */
 
-
-
-// social sharing configuration for blog posts
 const socialSharing: SocialSharingConfig = {
   display: true,
   platforms: {
@@ -170,10 +191,13 @@ const socialSharing: SocialSharingConfig = {
   },
 };
 
+/* ======================================
+   EXPORTS
+====================================== */
+
 export {
   display,
   routes,
-  protectedRoutes,
   baseURL,
   fonts,
   style,

@@ -14,7 +14,7 @@ export {
 export {
   display,
   routes,
-  protectedRoutes,
+  // protectedRoutes,
   baseURL,
   fonts,
   style,
