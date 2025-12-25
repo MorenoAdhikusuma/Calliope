@@ -19,6 +19,7 @@ import TableOfContents from "@/components/about/TableOfContents";
 import styles from "@/components/about/about.module.scss";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const FALLBACK_ABOUT = {
   title: "About",
@@ -52,7 +53,7 @@ export default async function About() {
         intro,
         sections[]{
           heading,
-          body
+          content
         }
       }
     `)) ?? FALLBACK_ABOUT;
@@ -139,7 +140,6 @@ export default async function About() {
               {person.role}
             </Text>
 
-            {/* SOCIAL BUTTONS */}
             {social.length > 0 && (
               <Row
                 className={styles.blockAlign}
@@ -178,24 +178,14 @@ export default async function About() {
 
           {/* INTRO */}
           {about.intro && (
-            <Column
-              textVariant="body-default-l"
-              fillWidth
-              gap="m"
-              marginBottom="xl"
-            >
+            <Column textVariant="body-default-l" fillWidth gap="m" marginBottom="xl">
               <Text>{about.intro}</Text>
             </Column>
           )}
 
           {/* CMS SECTIONS */}
           {about.sections.map((section: any, index: number) => (
-            <Column
-              key={index}
-              fillWidth
-              gap="m"
-              marginBottom="xl"
-            >
+            <Column key={index} fillWidth gap="m" marginBottom="xl">
               <Heading
                 as="h2"
                 id={section.heading}
@@ -203,7 +193,9 @@ export default async function About() {
               >
                 {section.heading}
               </Heading>
-              <Text variant="body-default-m">{section.body}</Text>
+              <Text variant="body-default-m">
+                {section.content}
+              </Text>
             </Column>
           ))}
         </Column>
